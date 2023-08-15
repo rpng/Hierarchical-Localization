@@ -178,7 +178,7 @@ def main(reference_sfm: Union[Path, pycolmap.Reconstruction],
             logs_clusters = []
             for i, cluster_ids in enumerate(clusters):
                 ret, log = pose_from_cluster(
-                        localizer, qname, qcam, cluster_ids, features, matches)
+                    localizer, qname, qcam, cluster_ids, features, matches)
                 if ret['success'] and ret['num_inliers'] > best_inliers:
                     best_cluster = i
                     best_inliers = ret['num_inliers']
@@ -194,7 +194,7 @@ def main(reference_sfm: Union[Path, pycolmap.Reconstruction],
             }
         else:
             ret, log = pose_from_cluster(
-                    localizer, qname, qcam, db_ids, features, matches)
+                localizer, qname, qcam, db_ids, features, matches)
             if ret['success']:
                 poses[qname] = (ret['qvec'], ret['tvec'])
             else:
