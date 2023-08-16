@@ -13,7 +13,7 @@ def generate_txt(folder_path, output_file):
 
 
 if __name__ == "__main__":
-    folder_path = "/home/yuxiang/datasets/rpng_table/table_01_imgs"
-    output_file = "output.txt"
+    folder_path = "/home/yuxiang/datasets/rpng_table/table_02_imgs"
+    output_file = "output2.txt"
     generate_txt(folder_path, output_file)
     print(f"Image names written to {output_file}")

@@ -11,18 +11,17 @@ from hloc import (
     localize_sfm,
 )
 
-images = Path("/home/yuxiang/datasets/rpng_table/table_01_map/rgb-25")
+images = Path("/home/yuxiang/datasets/rpng_table/table_01_map/rgb-222")
 outputs = Path("outputs/sfm/")
-output_dir = Path("outputs/query/")
-sfm_pairs = outputs / "pairs-netvlad.txt"
+output_dir = Path("outputs/query4_t3/")
 sfm_dir = outputs / "sfm_superpoint+superglue"
 loc_pairs = outputs / "pairs-query-netvlad20.txt"  # top 20 retrieved by NetVLAD
 
-results = outputs / "hloc_superpoint+superglue_netvlad20.txt"  # the result file
+results = output_dir / "hloc_superpoint+superglue_netvlad20.txt"  # the result file
 
 retrieval_conf = extract_features.confs["netvlad_rpng"]
 feature_conf = extract_features.confs["superpoint_rpng"]
-matcher_conf = match_features.confs["superglue"]
+matcher_conf = match_features.confs["superpoint+lightglue"]
 
 # global matching
 retrieval_path = extract_features.main(retrieval_conf, images, outputs)
@@ -31,7 +30,7 @@ retrieval_path = extract_features.main(retrieval_conf, images, outputs)
 feature_path = extract_features.main(feature_conf, images, outputs)
 
 # query global matching
-query = Path("/home/yuxiang/datasets/rpng_table/table_01_imgs")
+query = Path("/home/yuxiang/datasets/rpng_table/table_02_imgs")
 global_descriptors = extract_features.main(retrieval_conf, query, output_dir)
 pairs_from_retrieval.main(
     global_descriptors, loc_pairs, num_matched=20, db_descriptors=retrieval_path
@@ -49,5 +48,5 @@ mfile = match_features.main(
 )
 
 # localize query images in map
-query_list = Path("/home/yuxiang/workspace/Hierarchical-Localization/output.txt")
+query_list = Path("/home/yuxiang/workspace/Hierarchical-Localization/output2.txt")
 localize_sfm.main(sfm_dir, query_list, loc_pairs, ffile, mfile, results)
