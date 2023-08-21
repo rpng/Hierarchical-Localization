@@ -5,11 +5,13 @@ from pathlib import Path
 
 
 def parse_line(line):
+    # add timeoffset in here!
+    # (this does not make a big difference, but we want to do it more properly)
+    timeoffset = 0.002524377913673846
     parts = line.split()
     timestamp_str = parts[0].split(".")[0]  # Extract the timestamp part before '.png'
-    timestamp = float(
-        timestamp_str[:10] + "." + timestamp_str[10:]
-    )  # Format the timestamp
+    timestamp = float(timestamp_str[:10] + "." + timestamp_str[10:]) + timeoffset
+    # Format the timestamp
     rotation = np.array([float(parts[i]) for i in range(1, 5)])
     translation = np.array([float(parts[i]) for i in range(5, 8)]).reshape([3, 1])
     return {"timestamp": timestamp, "q_NtoC": rotation, "p_NinC": translation}

@@ -10,43 +10,59 @@ from hloc import (
     pairs_from_exhaustive,
     localize_sfm,
 )
+import argparse
 
-images = Path("/home/yuxiang/datasets/rpng_table/table_01_map/rgb-222")
-outputs = Path("outputs/sfm/")
-output_dir = Path("outputs/query4_t3/")
-sfm_dir = outputs / "sfm_superpoint+superglue"
-loc_pairs = outputs / "pairs-query-netvlad20.txt"  # top 20 retrieved by NetVLAD
+parser = argparse.ArgumentParser()
+parser.add_argument("--sfm_imgs", type=Path)
+parser.add_argument("--sfm_model", type=Path)
+parser.add_argument("--sfm_outputs", type=Path)
+parser.add_argument("--query_imgs", type=Path)
+parser.add_argument("--query_list", type=Path)
+parser.add_argument("--query_outputs", type=Path)
+parser.add_argument("--topn", type=int, default=5)
+parser.add_argument("--global_feat", type=str)
+parser.add_argument("--local_feat", type=str)
+parser.add_argument("--match_method", type=str)
+parser.add_argument("--result_name", type=str, default="result.txt")
+args = parser.parse_args()
 
-results = output_dir / "hloc_superpoint+superglue_netvlad20.txt"  # the result file
+images = args.sfm_imgs
+sfm_outputs = args.sfm_outputs
+query_outputs = args.query_outputs
+sfm_dir = args.sfm_model
+loc_pairs = query_outputs / Path(
+    "pairs-query-netvlad" + str(args.topn) + ".txt"
+)  # top n retrieved by NetVLAD
 
-retrieval_conf = extract_features.confs["netvlad_rpng"]
-feature_conf = extract_features.confs["superpoint_rpng"]
-matcher_conf = match_features.confs["superpoint+lightglue"]
+results = query_outputs / args.result_name  # the result file
 
-# global matching
-retrieval_path = extract_features.main(retrieval_conf, images, outputs)
+retrieval_conf = extract_features.confs[args.global_feat]
+feature_conf = extract_features.confs[args.local_feat]
+matcher_conf = match_features.confs[args.match_method]
 
-# local matching
-feature_path = extract_features.main(feature_conf, images, outputs)
+# global feature extraction for
+retrieval_path = extract_features.main(retrieval_conf, images, sfm_outputs)
+
+# local feature extraction?-> this actually do nothing
+feature_path = extract_features.main(feature_conf, images, sfm_outputs)
 
 # query global matching
-query = Path("/home/yuxiang/datasets/rpng_table/table_02_imgs")
-global_descriptors = extract_features.main(retrieval_conf, query, output_dir)
+query = args.query_imgs
+global_descriptors = extract_features.main(retrieval_conf, query, query_outputs)
 pairs_from_retrieval.main(
-    global_descriptors, loc_pairs, num_matched=20, db_descriptors=retrieval_path
+    global_descriptors, loc_pairs, num_matched=args.topn, db_descriptors=retrieval_path
 )
 
-
 # query local matching
-ffile = extract_features.main(feature_conf, query, output_dir)
+ffile = extract_features.main(feature_conf, query, query_outputs)
 mfile = match_features.main(
     matcher_conf,
     loc_pairs,
     feature_conf["output"],
-    output_dir,
+    query_outputs,
     features_ref=feature_path,
 )
 
 # localize query images in map
-query_list = Path("/home/yuxiang/workspace/Hierarchical-Localization/output2.txt")
+query_list = args.query_list
 localize_sfm.main(sfm_dir, query_list, loc_pairs, ffile, mfile, results)
